@@ -3,39 +3,45 @@ name: CI
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
   build-linux:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
 
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y \
-        libusb-1.0-0-dev \
-        libudev-dev
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libusb-1.0-0-dev \
+            libudev-dev
 
-    - name: Setup venv
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip setuptools
-        pip install -r requirements.txt
+      - name: Setup virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt
 
-    - name: Build
-      run: |
-        source venv/bin/activate
-        fbs freeze
-        cd target
-        tar cfJ flasher-linux.tar.xz "Sonix Keyboard Flasher"
+      - name: Build
+        run: |
+          source venv/bin/activate
+          fbs freeze
+          cd target
+          tar cfJ flasher-linux.tar.xz "Sonix Keyboard Flasher"
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: flasher-linux
-        path: target/flasher-linux.tar.xz
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flasher-linux
+          path: target/flasher-linux.tar.xz
